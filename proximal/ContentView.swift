@@ -13,6 +13,14 @@ struct ContentView: View {
             AuroraView()
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .ignoresSafeArea(.all)
+            Circle()
+                .fill(
+                    .linearGradient(colors: [
+                        .blue,
+                        .white
+                    ], startPoint: .top, endPoint: .bottom)
+                )
+                .frame(width: 140, height: 140)
             VStack {
                 FriendDetailCell()
             }
@@ -21,11 +29,84 @@ struct ContentView: View {
     }
 }
 
+extension Color {
+  //Solid color
+  static let aquaRed = Color(red: 0.9, green: 0.15, blue: 0.15)
+  static let aquaYellow = Color(red: 0.9, green: 0.6, blue: 0)
+  static let aquaGreen = Color(red: 0.5, green: 0.7, blue: 0.2)
+  static let aquaBlue = Color(red: 0, green: 0.6, blue: 1)
+  
+  //Solid grayscale
+  static let aquaGray = Color(white: 0.7)
+  static let aquaLightGray = Color(white: 0.9)
+  static let aquaCircularButtonHighlight = Color(white: 0.2)
+  static let aquaBehindCircularButtonHighlight = Color(white: 0.8)
+  static let aquaSegmentedControlOutlineStroke = Color(white: 0.4)
+  
+  //Transaprent grayscale
+  static let aquaCircularButtonLowlight = Color(white: 0.4, opacity: 1)
+  static let aquaTransparentWhite = Color(white: 1, opacity: 0.1)
+  static let aquaTranslucentWhite = Color(white: 1, opacity: 0.5)
+  static let aquaBrushedMetalStroke = Color(white: 0.65, opacity: 0.5)
+
+}
+
 let whiteToBlueGradient = LinearGradient(gradient: Gradient(stops: [Gradient.Stop(color: Color(hue: 0.0, saturation: 0.0, brightness: 1.0, opacity: 1.0), location: 0.0), Gradient.Stop(color: Color(hue: 0.5269819512424699, saturation: 0.3252129612198795, brightness: 1.0, opacity: 1.0), location: 0.8011643629807692)]), startPoint: UnitPoint.top, endPoint: UnitPoint.bottom)
 
 let blueToWhiteGradient = LinearGradient(gradient: Gradient(stops: [Gradient.Stop(color: Color(hue: 0.5269819512424699, saturation: 0.3252129612198795, brightness: 1.0, opacity: 1.0), location: 0.0), Gradient.Stop(color: Color(hue: 0.0, saturation: 0.0, brightness: 1.0, opacity: 1.0), location: 0.7877403846153846)]), startPoint: UnitPoint.top, endPoint: UnitPoint.bottom)
 
 let grayToWhiteGradient = LinearGradient(gradient: Gradient(stops: [Gradient.Stop(color: Color(hue: 0.5269819512424699, saturation: 0.0, brightness: 0.7601568382906627, opacity: 1.0), location: 0.0), Gradient.Stop(color: Color(hue: 0.0, saturation: 0.0, brightness: 1.0, opacity: 1.0), location: 0.4774188701923077)]), startPoint: UnitPoint.top, endPoint: UnitPoint.bottom)
+
+struct TransparentBlurView: UIViewRepresentable {
+    var removeAllFilters: Bool = false
+    func makeUIView(context: Context) -> TransparentBlurViewHelper {
+        return TransparentBlurViewHelper(removeAllFilters: removeAllFilters)
+    }
+    
+    // disable behavior
+    func updateUIView(_ uiView: TransparentBlurViewHelper, context: Context) { }
+}
+
+
+class TransparentBlurViewHelper: UIVisualEffectView {
+    init(removeAllFilters: Bool) {
+        super.init(effect: UIBlurEffect(style: .systemUltraThinMaterial))
+        
+        if subviews.indices.contains(1) {
+            subviews[1].alpha = 0
+        }
+        
+        if let backdropLayer = layer.sublayers?.first {
+            if removeAllFilters {
+                backdropLayer.filters = []
+            } else {
+                backdropLayer.filters?.removeAll(where: { filter in
+                    String(describing: filter) != "gaussianBlur"
+                })
+            }
+        }
+    }
+    
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+    
+    // disable trait collection chages
+    override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) { }
+}
+
+struct AquaHighAndLowlightView<T: Shape>: View {
+  let shape: T
+  let colors: [Color]
+  var linearGradient: LinearGradient {
+    LinearGradient(gradient: Gradient(colors: colors), startPoint: .top, endPoint: .bottom)
+  }
+  
+  var body: some View {
+    shape
+      .stroke(linearGradient, lineWidth: 2.5)
+  }
+}
 
 struct CircularProgressView: View {
     let progress: Double
@@ -91,20 +172,20 @@ struct ReactionButton: View {
         }
         
         var filled: String {
-                switch self {
-                case .sendLove:
-                    return "heart.fill"
-                case .thinkingOfYou:
-                    return "bubbles.and.sparkles.fill"
-                case .flowers:
-                    return "camera.macro.circle.fill"
-                case .hug:
-                    return "figure.2"
-                case .concerned:
-                    return "flag.fill"
-                case .callMe:
-                    return "phone.badge.waveform.fill"
-                }
+            switch self {
+            case .sendLove:
+                return "heart.fill"
+            case .thinkingOfYou:
+                return "bubbles.and.sparkles.fill"
+            case .flowers:
+                return "camera.macro.circle.fill"
+            case .hug:
+                return "figure.2"
+            case .concerned:
+                return "flag.fill"
+            case .callMe:
+                return "phone.badge.waveform.fill"
+            }
         }
         
         var urgent: Bool {
@@ -124,6 +205,10 @@ struct ReactionButton: View {
     
     var reaction: Reaction
     @State var tapped: Bool = false
+    @State var startAnimation: CGFloat = 0
+    var progress: Double {
+        tapped ? 1.0 : 0.0
+    }
     
     var body: some View {
         Button(action: {
@@ -174,6 +259,37 @@ struct FriendDetailCell: View {
                             Image("profile-demo")
                                 .resizable()
                                 .aspectRatio(contentMode: .fill)
+                                .overlay {
+                                    GeometryReader { geometry in
+                                        let topHighlightHeight = geometry.size.height * 0.3
+                                        let bottomHighlightOffset = geometry.size.height * 0.6
+                                        ZStack {
+//                                            Circle() //Behind highlight
+//                                                .foregroundColor(.black.opacity(0.1))
+//                                                .offset(x: -1, y: 1)
+                                            Group {
+//                                                Circle() //Bottom highlight
+//                                                    .foregroundColor(.white.opacity(0.7))
+//                                                    .offset(y: bottomHighlightOffset)
+//                                                    .blur(radius: 5)
+//                                                Group {
+//                                                    Capsule() //Top highlight
+//                                                        .frame(height: topHighlightHeight)
+//                                                        .foregroundColor(.white.opacity(0.7))
+//                                                        .blur(radius: 4)
+//                                                        .padding(.horizontal, 3)
+//                                                }
+//                                                .frame(maxHeight: .infinity, alignment: .top)
+                                                //Outline
+                                                AquaHighAndLowlightView(shape: Circle(), colors:
+                                                                            [.black.opacity(0.7),
+                                                                             .white.opacity(0.5)])
+                                            }
+                                            .clipShape(Circle())
+                                        }
+                                    }
+                                    .aspectRatio(1, contentMode: .fit)
+                                }
                                 .clipShape(Circle())
                                 .frame(
                                     width: expanded ? 80 : 50,
@@ -182,11 +298,11 @@ struct FriendDetailCell: View {
                         }
                     }
                     VStack {
-                        Text("Renaise Kim")
+                        Text("Makka Pakka")
                             .frame(maxWidth: .infinity,
                                    alignment: .leading)
                             .font(.headline)
-                        Text("\"Got some banana bread at work today dude! Hell yea!\"")
+                        Text("\"Makka pakka appa yakka mikka makka moo!\"")
                             .frame(maxWidth: .infinity,
                                    alignment: .leading)
                             .font(.subheadline.italic())
@@ -224,11 +340,20 @@ struct FriendDetailCell: View {
             }
             .frame(height: expanded ? 200 : 80)
         }
-        .background(.thinMaterial)
+//        .background(.thinMaterial)
+        .background {
+            TransparentBlurView(removeAllFilters: true)
+                .blur(radius: 9, opaque: true)
+                .background(.white.opacity(0.05))
+        }
         .clipShape(RoundedRectangle(
-            cornerRadius: 25.0,
+            cornerRadius: expanded ? 30.0 : 25.0,
             style: .continuous
         ))
+        .background {
+            RoundedRectangle(cornerRadius: expanded ? 30.0 : 25.0, style: .continuous)
+                .stroke(.white.opacity(0.3), lineWidth: 1.5)
+        }
         .shadow(color: .black.opacity(0.2), radius: 4.0, y: 4.0)
         .onTapGesture(perform: {
             withAnimation(.bouncy, {
