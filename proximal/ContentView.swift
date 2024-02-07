@@ -211,25 +211,23 @@ struct ReactionButton: View {
     }
     
     var body: some View {
-        Button(action: {
-            withAnimation(.bouncy) {
-                tapped = !tapped
+        reaction.symbol(tapped)
+            .symbolEffect(.bounce, value: tapped)
+            .scaleEffect(tapped ? 1.25 : 1.0)
+            .if(reaction.urgent, transform: { $0.rotationEffect(.degrees(tapped ? 360 : 0)) })
+            .frame(width: 50, height: 50)
+            .foregroundColor(.blue)
+            .background(whiteToBlueGradient)
+            .clipShape(Circle())
+            .overlay {
+                Circle().stroke(blueToWhiteGradient, lineWidth: 2.0)
             }
-        }, label: {
-            reaction.symbol(tapped)
-                .symbolEffect(.bounce, value: tapped)
-                .scaleEffect(tapped ? 1.25 : 1.0)
-                .if(reaction.urgent, transform: { $0.rotationEffect(.degrees(tapped ? 360 : 0)) })
-                .frame(width: 50, height: 50)
-                .foregroundColor(.blue)
-                .background(whiteToBlueGradient)
-                .clipShape(Circle())
-                .overlay {
-                    Circle().stroke(blueToWhiteGradient, lineWidth: 2.0)
+            .shadow(color: .black.opacity( tapped ? 0.4 : 0.2), radius: 2, y: tapped ? 0 : 2)
+            .onTapGesture {
+                withAnimation(.bouncy) {
+                    tapped = !tapped
                 }
-                .shadow(color: .black.opacity(0.2), radius: 2, y: 2)
-            
-        })
+            }
     }
     
     static func fullset() -> some View {
@@ -248,65 +246,37 @@ struct FriendDetailCell: View {
     var body: some View {
         ZStack {
             VStack(spacing: 20) {
-                HStack {
+                HStack(spacing: 10) {
                     VStack {
-                        ZStack {
-                            CircularProgressView(progress: value)
-                                .frame(
-                                    width: expanded ? 84 : 54,
-                                    height: expanded ? 84 : 54
-                                )
-                            Image("profile-demo")
-                                .resizable()
-                                .aspectRatio(contentMode: .fill)
-                                .overlay {
-                                    GeometryReader { geometry in
-                                        let topHighlightHeight = geometry.size.height * 0.3
-                                        let bottomHighlightOffset = geometry.size.height * 0.6
-                                        ZStack {
-//                                            Circle() //Behind highlight
-//                                                .foregroundColor(.black.opacity(0.1))
-//                                                .offset(x: -1, y: 1)
-                                            Group {
-//                                                Circle() //Bottom highlight
-//                                                    .foregroundColor(.white.opacity(0.7))
-//                                                    .offset(y: bottomHighlightOffset)
-//                                                    .blur(radius: 5)
-//                                                Group {
-//                                                    Capsule() //Top highlight
-//                                                        .frame(height: topHighlightHeight)
-//                                                        .foregroundColor(.white.opacity(0.7))
-//                                                        .blur(radius: 4)
-//                                                        .padding(.horizontal, 3)
-//                                                }
-//                                                .frame(maxHeight: .infinity, alignment: .top)
-                                                //Outline
-                                                AquaHighAndLowlightView(shape: Circle(), colors:
-                                                                            [.black.opacity(0.7),
-                                                                             .white.opacity(0.5)])
-                                            }
-                                            .clipShape(Circle())
-                                        }
-                                    }
-                                    .aspectRatio(1, contentMode: .fit)
-                                }
-                                .clipShape(Circle())
-                                .frame(
-                                    width: expanded ? 80 : 50,
-                                    height: expanded ? 80 : 50
-                                )
-                        }
+                        Image("profile-demo")
+                            .resizable()
+                            .aspectRatio(contentMode: .fill)
+                            .clipShape(Circle())
+                            .frame(
+                                width: expanded ? 80 : 50,
+                                height: expanded ? 80 : 50
+                            )
+                            .overlay {
+                                CircularProgressView(progress: value)
+                                    .frame(
+                                        width: expanded ? 84 : 54,
+                                        height: expanded ? 84 : 54
+                                    )
+                            }
+                            .shadow(color: .black.opacity(0.2), radius: 2, y: 2)
                     }
                     VStack {
                         Text("Makka Pakka")
                             .frame(maxWidth: .infinity,
                                    alignment: .leading)
                             .font(.headline)
+//                            .foregroundStyle(.white, .black)
                         Text("\"Makka pakka appa yakka mikka makka moo!\"")
                             .frame(maxWidth: .infinity,
                                    alignment: .leading)
                             .font(.subheadline.italic())
                             .lineLimit(expanded ? 3 : 1)
+//                            .foregroundStyle(.white, .black)
                     }
                     VStack {
                         Button(action: {
@@ -340,17 +310,17 @@ struct FriendDetailCell: View {
             }
             .frame(height: expanded ? 200 : 80)
         }
-//        .background(.thinMaterial)
-        .background {
-            TransparentBlurView(removeAllFilters: true)
-                .blur(radius: 9, opaque: true)
-                .background(.white.opacity(0.05))
-        }
+        .background(.ultraThinMaterial)
+//        .background {
+//            TransparentBlurView(removeAllFilters: true)
+//                .blur(radius: 9, opaque: true)
+//                .background(.white.opacity(0.05))
+//        }
         .clipShape(RoundedRectangle(
             cornerRadius: expanded ? 30.0 : 25.0,
             style: .continuous
         ))
-        .background {
+        .overlay {
             RoundedRectangle(cornerRadius: expanded ? 30.0 : 25.0, style: .continuous)
                 .stroke(.white.opacity(0.3), lineWidth: 1.5)
         }

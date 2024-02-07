@@ -18,7 +18,8 @@ struct AuroraView: View {
                     MovingCircle(originOffset: circle.position)
                         .foregroundColor(circle.color)
                 }
-            }.blur(radius: AnimationProperties.blurRadius)
+            }
+            .blur(radius: AnimationProperties.blurRadius)
         }
         .background(AuroraColors.backgroundColor)
         .onDisappear {
@@ -44,16 +45,20 @@ struct AuroraView: View {
 private enum AuroraColors {
     static var all: [Color] {
         [
-            Color(red: 11/255, green: 36/255, blue: 40/255, opacity: 0.6),
-            Color(red: 24/255, green: 99/255, blue: 110/255),
+//            Color(red: 11/255, green: 36/255, blue: 40/255, opacity: 0.6),
+//            Color(red: 24/255, green: 99/255, blue: 110/255),
             Color(red: 185/255, green: 249/255, blue: 137/255, opacity: 0.7),
+            Color(hue: 0.5269819512424699, saturation: 0.3252129612198795, brightness: 1.0, opacity: 1.0),
             Color(red: 63/255, green: 140/255, blue: 78/255),
             Color(red: 185/255, green: 249/255, blue: 137/255),
         ]
     }
     
     static var backgroundColor: Color {
-        Color(red: 23/255, green: 81/255, blue: 104/255)
+//        Color(red: 23/255, green: 81/255, blue: 104/255)
+        Color(red: 38/255, green: 133/255, blue: 163/255)
+//        Color(red: 255/255, green: 245/255, blue: 157/255)
+//        .aquaTranslucentWhite
     }
 }
 
